@@ -9,7 +9,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "prisma:generate": "prisma generate",
-    "prisma:format": "prisma format"
+    "prisma:format": "prisma format",
+    "prisma:migrate": "prisma migrate dev --name init"
   },
   "dependencies": {
     "@prisma/client": "^6.15.0",

@@ -14,6 +14,33 @@ API multi-tenant para estudios de tatuajes. Cada estudio puede tener varios tatu
 3. Instalar dependencias con `npm install`.
 4. Generar el cliente Prisma con `npm run prisma:generate`.
 
+Desde Windows con Docker Desktop, iniciar PostgreSQL desde la raíz del proyecto:
+
+```powershell
+docker compose up -d postgres
+docker compose ps
+```
+
+La API se ejecuta fuera de Docker durante el desarrollo, por eso `.env` debe usar
+`localhost` como host de PostgreSQL. Una vez que el contenedor esté saludable,
+crear la migración inicial:
+
+```powershell
+npm run prisma:migrate
+```
+
+Para detener PostgreSQL sin borrar los datos:
+
+```powershell
+docker compose down
+```
+
+Para borrar también los datos persistidos:
+
+```powershell
+docker compose down -v
+```
+
 ## Comandos
 
 ```bash
