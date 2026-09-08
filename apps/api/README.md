@@ -51,9 +51,59 @@ npm start
 
 La comprobación inicial está disponible en `GET /health`.
 
+## Tatuadores
+
+Todas estas rutas requieren `Authorization: Bearer <token-del-dueño>`:
+
+```text
+POST  /api/artists
+GET   /api/artists
+PATCH /api/artists/:artistId
+PATCH /api/artists/:artistId/status
+```
+
+Crear un tatuador:
+
+```json
+{
+  "name": "Sofía López",
+  "email": "sofia@example.com",
+  "password": "una-clave-segura"
+}
+```
+
+Para activar o desactivar un tatuador, enviar `{ "isActive": false }` o
+`{ "isActive": true }`. La baja es lógica para conservar su historial de turnos.
+
+## Horarios de tatuadores
+
+Todas estas rutas requieren `Authorization: Bearer <token>`:
+
+```text
+GET    /api/schedules
+GET    /api/schedules?artistId=<artistId>
+POST   /api/schedules
+PATCH  /api/schedules/:scheduleId
+DELETE /api/schedules/:scheduleId
+```
+
+El dueño puede administrar los horarios del estudio. Cada tatuador también puede
+crear, editar y eliminar únicamente sus propios horarios. `weekday` usa `0` para
+domingo, `1` para lunes y `6` para sábado.
+
+Ejemplo para crear un horario de lunes de 10:00 a 18:00:
+
+```json
+{
+  "artistId": "id-del-tatuador",
+  "weekday": 1,
+  "startTime": "10:00",
+  "endTime": "18:00",
+  "slotMinutes": 60
+}
+```
+
 ## Próximo slice
 
-- Migración inicial de PostgreSQL.
-- Registro y login de administradores.
-- Middleware de autenticación y contexto de estudio.
-- CRUD de tatuadores y disponibilidad.
+- Clientes y turnos.
+- Excepciones de disponibilidad y cálculo de slots libres.
