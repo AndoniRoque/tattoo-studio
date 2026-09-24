@@ -1,0 +1,142 @@
+generator client {
+   provider = "prisma-client-js"
+}
+
+datasource db {
+   provider = "postgresql"
+   url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+   OWNER
+   ARTIST
+}
+
+enum AppointmentStatus {
+   PENDING
+   CONFIRMED
+   CANCELLED
+   COMPLETED
+   NO_SHOW
+}
+
+enum TattooStyle {
+   COLOR
+   BLACK_AND_WHITE
+}
+
+enum AppointmentSize {
+   SMALL
+   MEDIUM
+   LARGE
+}
+
+model Studio {
+   id           String                  @id @default(cuid())
+   name         String
+   slug         String                  @unique
+   timezone     String                  @default("America/Argentina/Buenos_Aires")
+   phone        String?
+   email        String?
+   createdAt    DateTime                @default(now())
+   updatedAt    DateTime                @updatedAt
+   memberships  StudioMember[]
+   clients      Client[]
+   appointments Appointment[]
+   schedules    WorkSchedule[]
+   exceptions   AvailabilityException[]
+}
+
+model User {
+   id           String                  @id @default(cuid())
+   name         String
+   email        String                  @unique
+   passwordHash String
+   createdAt    DateTime                @default(now())
+   updatedAt    DateTime                @updatedAt
+   memberships  StudioMember[]
+   appointments Appointment[]           @relation("ArtistAppointments")
+   schedules    WorkSchedule[]          @relation("ArtistSchedules")
+   exceptions   AvailabilityException[] @relation("ArtistExceptions")
+}
+
+model StudioMember {
+   id        String   @id @default(cuid())
+   studioId  String
+   userId    String
+   role      UserRole
+   isActive  Boolean  @default(true)
+   createdAt DateTime @default(now())
+   studio    Studio   @relation(fields: [studioId], references: [id], onDelete: Cascade)
+   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+   @@unique([studioId, userId])
+   @@index([studioId, role])
+}
+
+model Client {
+   id           String        @id @default(cuid())
+   studioId     String
+   name         String
+   email        String?
+   phone        String
+   notes        String?
+   createdAt    DateTime      @default(now())
+   updatedAt    DateTime      @updatedAt
+   studio       Studio        @relation(fields: [studioId], references: [id], onDelete: Cascade)
+   appointments Appointment[]
+
+   @@unique([studioId, phone])
+   @@index([studioId, name])
+}
+
+model Appointment {
+   id          String            @id @default(cuid())
+   studioId    String
+   artistId    String
+   clientId    String
+   startsAt    DateTime
+   endsAt      DateTime
+   status      AppointmentStatus @default(PENDING)
+   tattooStyle TattooStyle
+   size        AppointmentSize
+   bodyArea    String
+   description String?
+   client      Client            @relation(fields: [clientId], references: [id])
+   studio      Studio            @relation(fields: [studioId], references: [id], onDelete: Cascade)
+   artist      User              @relation("ArtistAppointments", fields: [artistId], references: [id])
+   createdAt   DateTime          @default(now())
+   updatedAt   DateTime          @updatedAt
+
+   @@index([studioId, startsAt])
+   @@index([artistId, startsAt])
+   @@index([clientId, startsAt])
+}
+
+model WorkSchedule {
+   id          String  @id @default(cuid())
+   studioId    String
+   artistId    String?
+   weekday     Int
+   startTime   String
+   endTime     String
+   slotMinutes Int     @default(60)
+   studio      Studio  @relation(fields: [studioId], references: [id], onDelete: Cascade)
+   artist      User?   @relation("ArtistSchedules", fields: [artistId], references: [id], onDelete: Cascade)
+
+   @@unique([studioId, artistId, weekday, startTime, endTime])
+   @@index([studioId, weekday])
+}
+
+model AvailabilityException {
+   id       String   @id @default(cuid())
+   studioId String
+   artistId String?
+   startsAt DateTime
+   endsAt   DateTime
+   reason   String?
+   studio   Studio   @relation(fields: [studioId], references: [id], onDelete: Cascade)
+   artist   User?    @relation("ArtistExceptions", fields: [artistId], references: [id], onDelete: Cascade)
+
+   @@index([studioId, startsAt])
+}

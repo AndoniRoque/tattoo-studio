@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: tattoo-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: tattoo_turnero
+    ports:
+      - "127.0.0.1:5454:5432"
+    volumes:
+      - tattoo_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tattoo_turnero"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  tattoo_postgres_data:
