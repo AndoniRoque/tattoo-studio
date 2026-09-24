@@ -28,6 +28,12 @@ type Studio = {
 };
 type Artist = { id: string; name: string };
 type Slot = { startsAt: string; endsAt: string };
+type BookingConfirmation = {
+  id: string;
+  startsAt: string;
+  artistName: string;
+  emailSent: boolean;
+};
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
 const studioSlug = process.env.NEXT_PUBLIC_STUDIO_SLUG ?? "s1t";
@@ -43,7 +49,7 @@ export default function Home() {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState<string | null>(null);
+  const [success, setSuccess] = useState<BookingConfirmation | null>(null);
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -135,7 +141,12 @@ export default function Home() {
       const data = await response.json();
       if (!response.ok)
         throw new Error(data.error ?? "No pudimos crear la reserva.");
-      setSuccess(data.appointment.id);
+      setSuccess({
+        id: data.appointment.id,
+        startsAt: data.appointment.startsAt,
+        artistName: data.appointment.artist.name,
+        emailSent: data.emailSent,
+      });
     } catch (submitError) {
       setError(
         submitError instanceof Error
@@ -224,7 +235,10 @@ export default function Home() {
 
             <Box
               as="form"
-              onSubmit={() => void submitBooking()}
+              onSubmit={(event) => {
+                event.preventDefault();
+                void submitBooking();
+              }}
               background="var(--card)"
               border="1px solid var(--line)"
               borderRadius="18px"
@@ -233,6 +247,15 @@ export default function Home() {
             >
               {success ? (
                 <Stack gap="5" py="8">
+                  <Alert.Root status="success" borderRadius="12px">
+                    <Alert.Indicator />
+                    <Alert.Content>
+                      <Alert.Title>Turno guardado correctamente</Alert.Title>
+                      <Alert.Description>
+                        Tu solicitud quedó registrada en el estudio.
+                      </Alert.Description>
+                    </Alert.Content>
+                  </Alert.Root>
                   <Text fontSize="5xl">✦</Text>
                   <Heading
                     fontFamily="var(--font-display), serif"
@@ -242,15 +265,26 @@ export default function Home() {
                     Solicitud recibida.
                   </Heading>
                   <Text color="var(--muted)">
-                    Guardamos tu lugar tentativo. El estudio va a contactarte
-                    para confirmar la sesión.
+                    Guardamos tu lugar tentativo con {success.artistName} para
+                    el {new Date(success.startsAt).toLocaleDateString("es-AR")}{" "}
+                    a las{" "}
+                    {new Date(success.startsAt).toLocaleTimeString("es-AR", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                    .
+                  </Text>
+                  <Text color="var(--muted)" fontSize="sm">
+                    {success.emailSent
+                      ? "También enviamos un resumen al email indicado."
+                      : "El estudio va a contactarte para confirmar la sesión."}
                   </Text>
                   <Text
                     fontSize="xs"
                     color="var(--muted)"
                     wordBreak="break-all"
                   >
-                    Referencia: {success}
+                    Referencia: {success.id}
                   </Text>
                   <Button
                     type="button"
