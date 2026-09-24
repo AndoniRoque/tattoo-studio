@@ -1,0 +1,31 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+.next/
+coverage/
+
+# Next.js and frontend build output
+out/
+build/
+.turbo/
+.cache/
+
+# TypeScript and package-manager artifacts
+*.tsbuildinfo
+.pnp
+.pnp.*
+.yarn/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local and OS files
+.DS_Store
+Thumbs.db
+*.pem
+.vercel/
